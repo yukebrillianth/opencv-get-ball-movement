@@ -5,3 +5,34 @@
 > Nrp: 5024241016
 
 This project is related to the task as an intern software engineer in the Robotics UKM Research Team (IRIS) week 2, Computer Vision chapter.
+
+## How to Use
+### 1. Installation
+Clone this repo
+```bash
+git clone https://github.com/yukebrillianth/opencv-get-ball-movement.git ball-position
+
+cd ball-position
+```
+
+Make a build directory
+```bash
+mkdir build
+cd build
+```
+
+run cmake
+```bash
+cmake ..
+```
+
+### 2. Usage
+compile before run the program
+*(run in build directory)*
+```bash
+make
+```
+run the program
+```bash
+./BallMovement
+```
