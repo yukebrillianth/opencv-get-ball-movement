@@ -71,8 +71,7 @@ int main()
                 // Init start ball pos
                 if (startBallPosition.x == 0 && startBallPosition.y == 0)
                 {
-                    startBallPosition.x = ballPosition.x;
-                    startBallPosition.y = ballPosition.y;
+                    startBallPosition = ballPosition;
                 }
 
                 // Get robot pos
