@@ -6,6 +6,11 @@
 using namespace cv;
 using namespace std;
 
+double calculateDistance(Point2f p1, Point2f p2)
+{
+    return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
+}
+
 int main()
 {
     VideoCapture cap("../cam.avi");
@@ -66,21 +71,26 @@ int main()
                 // Init start ball pos
                 if (startBallPosition.x == 0 && startBallPosition.y == 0)
                 {
-                    startBallPosition.x = mX;
-                    startBallPosition.y = mY;
+                    startBallPosition.x = ballPosition.x;
+                    startBallPosition.y = ballPosition.y;
                 }
 
                 // Get robot pos
-                double robotX = cvRound(startBallPosition.x - mX);
-                double robotY = cvRound(mY - startBallPosition.y);
+                double robotX = cvRound(startBallPosition.x - ballPosition.x);
+                double robotY = cvRound(ballPosition.y - startBallPosition.y);
                 line(frame, centerOfRobot, ballPosition, Scalar(255, 0, 0));
 
+                // Calculate distance
+                double distance = calculateDistance(ballPosition, centerOfRobot);
+
                 // Tampilkan informasi pada frame
-                string posInfo = "Robot Position: (" + to_string(int(robotX / 10)) + ", " + to_string(int(robotY / 10)) + ")";
-                string ballPosInfo = "Ball Position: (" + to_string(int(mX / 10)) + ", " + to_string(int(mY / 10)) + ")";
+                string posInfo = "Robot Position: (" + to_string(int(robotX / 10)) + "cm, " + to_string(int(robotY / 10)) + " cm)";
+                string ballPosInfo = "Ball Position: (" + to_string(int(ballPosition.x / 10)) + "cm, " + to_string(int(ballPosition.y / 10)) + " cm)";
+                string distanceInfo = "Distance: " + to_string(int(distance * 10)) + " cm";
 
                 putText(frame, posInfo, Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
                 putText(frame, ballPosInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                putText(frame, distanceInfo, Point(10, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
             }
         }
 
@@ -90,7 +100,7 @@ int main()
         // Show original image
         imshow("Camera", frame);
 
-        if (waitKey(1) == 'q')
+        if (waitKey(24) == 'q')
         {
             break;
         }
