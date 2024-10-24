@@ -6,116 +6,82 @@
 using namespace cv;
 using namespace std;
 
-float calculateDistance(float radius)
-{
-    // const double a = 2.0868157930708398, b = -4.3881898257058580, c = 3.7050037050199380, d = -1.0918760918813372;
-
-    // return ((a * pow(10, 2)) * radius) + ((b * pow(10, 0)) * radius) + ((c * pow(10, -2)) * radius) + ((d * pow(10, -4)) * radius);
-
-    // Langsung copy dari calc arachnoid nyah
-    float terms[] = {
-        1.4179837576930566e+002,
-        -2.0652213774139256e+000,
-        1.1648757199107242e-002,
-        -2.1895026422167324e-005};
-
-    float t = 1;
-    float r = 0;
-    for (float c : terms)
-    {
-        r += c * t;
-        t *= radius;
-    }
-    return r;
-}
-
 int main()
 {
-    // VideoCapture cap("/dev/v4l/by-id/usb-Generic_Integrated_Camera_200901010001-video-index0"); // Integrated camera
-    VideoCapture cap(0); // Iriun webcam
+    VideoCapture cap("../cam.avi");
+
     if (!cap.isOpened())
     {
         cout << "Unable to access camera!" << endl;
         return -1;
     }
 
-    Mat frame;
+    Mat frame, frame_hsv, frame_thres;
 
     /**
      * @brief Configure Trackbar window
      *
      */
-    int y[2] = {15, 165}, u[2] = {59, 168}, v[2] = {0, 50};
+    int h[2] = {100, 255}, s[2] = {170, 255}, v[2] = {200, 255};
     namedWindow("Control");
 
-    createTrackbar("Ymin", "Control", &y[0], 255);
-    createTrackbar("Umin", "Control", &u[0], 255);
+    createTrackbar("Hmin", "Control", &h[0], 255);
+    createTrackbar("Smin", "Control", &s[0], 255);
     createTrackbar("Vmin", "Control", &v[0], 255);
 
-    createTrackbar("Ymax", "Control", &y[1], 255);
-    createTrackbar("Umax", "Control", &u[1], 255);
+    createTrackbar("Hmax", "Control", &h[1], 255);
+    createTrackbar("Smax", "Control", &s[1], 255);
     createTrackbar("Vmax", "Control", &v[1], 255);
+
+    Point2f startBallPosition(0, 0);
 
     while (true)
     {
         cap >> frame;
 
-        // Convert BGR to yuv
-        Mat frame_yuv;
-        cvtColor(frame, frame_yuv, COLOR_BGR2YUV);
-
-        Mat frame_thres;
-        inRange(frame, Scalar(y[0], u[0], v[0]), Scalar(y[1], u[1], v[1]), frame_thres);
+        // Convert RGB to HSV
+        cvtColor(frame, frame_hsv, COLOR_RGB2HSV);
+        inRange(frame_hsv, Scalar(h[0], s[0], v[0]), Scalar(h[1], s[1], v[1]), frame_thres);
 
         vector<vector<Point>> contours;
-        findContours(frame_thres, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+        findContours(frame_thres, contours, RETR_TREE, CHAIN_APPROX_NONE);
 
         if (!contours.empty())
         {
-            int largestContourAreaI = 0;
-            double largestArea = contourArea(contours[0]);
+            // Get center of robot
+            Point2f centerOfRobot(frame.cols / 2, (frame.rows / 2) - 20);
+            circle(frame, centerOfRobot, 4, Scalar(0, 0, 255), -1);
 
-            // Get largest contour area
-            for (size_t i = 0; i < contours.size(); i++)
-            {
-                double area = contourArea(contours[i]);
-
-                if (area > largestArea)
-                {
-                    largestArea = area;
-                    largestContourAreaI = i;
-                }
-            }
-            Moments m = moments(contours[largestContourAreaI]);
+            Moments m = moments(contours[0]);
             double mArea = m.m00;
-            double mX = m.m10;
-            double mY = m.m01;
+            if (mArea != 0)
+            {
+                double mX = m.m10;
+                double mY = m.m01;
 
-            Point2f centroid(mX / mArea, mY / mArea);
+                // Posisi bola
+                Point2f ballPosition(mX / mArea, mY / mArea);
+                circle(frame, ballPosition, 3, Scalar(0, 0, 255), -1);
 
-            Point2f circleLine;
-            float radius;
+                // Init start ball pos
+                if (startBallPosition.x == 0 && startBallPosition.y == 0)
+                {
+                    startBallPosition.x = mX;
+                    startBallPosition.y = mY;
+                }
 
-            // Hitung min enclosing circle
-            minEnclosingCircle(contours[largestContourAreaI], circleLine, radius);
+                // Get robot pos
+                double robotX = cvRound(startBallPosition.x - mX);
+                double robotY = cvRound(mY - startBallPosition.y);
+                line(frame, centerOfRobot, ballPosition, Scalar(255, 0, 0));
 
-            // float distance = (200 * 22) / radius;
-            float distance = calculateDistance(radius);
-            cout << "Radius: " << radius << endl;
+                // Tampilkan informasi pada frame
+                string posInfo = "Robot Position: (" + to_string(int(robotX / 10)) + ", " + to_string(int(robotY / 10)) + ")";
+                string ballPosInfo = "Ball Position: (" + to_string(int(mX / 10)) + ", " + to_string(int(mY / 10)) + ")";
 
-            // gambar enclosing circle
-            circle(frame, circleLine, (int)radius, Scalar(0, 255, 255), 2);
-
-            // show info
-            string distanceText = "Distance: " + to_string(int(distance)) + " cm";
-            string areaText = "Area: " + to_string(int(largestArea));
-            putText(frame, distanceText, Point(circleLine.x - radius, circleLine.y - radius - 10),
-                    FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
-            putText(frame, areaText, Point(circleLine.x - radius, circleLine.y - radius - 30),
-                    FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2);
-
-            // Gambar titik tengah
-            circle(frame, centroid, 3, Scalar(0, 0, 255), -1);
+                putText(frame, posInfo, Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                putText(frame, ballPosInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+            }
         }
 
         // Show thresholded image
