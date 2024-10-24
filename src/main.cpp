@@ -2,9 +2,13 @@
 #include <opencv2/videoio.hpp>
 #include <vector>
 #include <math.h>
+#include <chrono>
+#include <ctime>
+#include <ratio>
 
 using namespace cv;
 using namespace std;
+using namespace std::chrono;
 
 double calculateDistance(Point2f p1, Point2f p2)
 {
@@ -39,6 +43,10 @@ int main()
     createTrackbar("Vmax", "Control", &v[1], 255);
 
     Point2f startBallPosition(0, 0);
+    double lastDistance = 0;
+
+    // Init time awal
+    high_resolution_clock::time_point lastTime = high_resolution_clock::now();
 
     while (true)
     {
@@ -68,10 +76,14 @@ int main()
                 Point2f ballPosition(mX / mArea, mY / mArea);
                 circle(frame, ballPosition, 3, Scalar(0, 0, 255), -1);
 
+                // Calculate distance
+                double distance = calculateDistance(ballPosition, centerOfRobot);
+
                 // Init start ball pos
                 if (startBallPosition.x == 0 && startBallPosition.y == 0)
                 {
                     startBallPosition = ballPosition;
+                    lastDistance = distance;
                 }
 
                 // Get robot pos
@@ -79,17 +91,22 @@ int main()
                 double robotY = cvRound(ballPosition.y - startBallPosition.y);
                 line(frame, centerOfRobot, ballPosition, Scalar(255, 0, 0));
 
-                // Calculate distance
-                double distance = calculateDistance(ballPosition, centerOfRobot);
-
+                // Calculate speed
+                high_resolution_clock::time_point tNow = high_resolution_clock::now();
+                duration<double> time_span = duration_cast<duration<double>>(tNow - lastTime);
+                lastTime = tNow;
+                float speed = abs(((lastDistance - distance) * 10) / time_span.count());
+                lastDistance = distance;
                 // Tampilkan informasi pada frame
                 string posInfo = "Robot Position: (" + to_string(int(robotX / 10)) + "cm, " + to_string(int(robotY / 10)) + " cm)";
                 string ballPosInfo = "Ball Position: (" + to_string(int(ballPosition.x / 10)) + "cm, " + to_string(int(ballPosition.y / 10)) + " cm)";
                 string distanceInfo = "Distance: " + to_string(int(distance * 10)) + " cm";
+                string speedInfo = "Speed: " + to_string((int)speed) + " cm/s";
 
                 putText(frame, posInfo, Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
                 putText(frame, ballPosInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
                 putText(frame, distanceInfo, Point(10, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                putText(frame, speedInfo, Point(10, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
             }
         }
 
