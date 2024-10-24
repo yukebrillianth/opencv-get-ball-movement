@@ -99,14 +99,14 @@ int main()
                 lastDistance = distance;
                 // Tampilkan informasi pada frame
                 string posInfo = "Robot Position: (" + to_string(int(robotX / 10)) + "cm, " + to_string(int(robotY / 10)) + " cm)";
-                string ballPosInfo = "Ball Position: (" + to_string(int(ballPosition.x / 10)) + "cm, " + to_string(int(ballPosition.y / 10)) + " cm)";
+                // string ballPosInfo = "Ball Position: (" + to_string(int(ballPosition.x / 10)) + "cm, " + to_string(int(ballPosition.y / 10)) + " cm)";
                 string distanceInfo = "Distance: " + to_string(int(distance * 10)) + " cm";
                 string speedInfo = "Speed: " + to_string((int)speed) + " cm/s";
 
                 putText(frame, posInfo, Point(10, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
-                putText(frame, ballPosInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
-                putText(frame, distanceInfo, Point(10, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
-                putText(frame, speedInfo, Point(10, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                // putText(frame, ballPosInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                putText(frame, distanceInfo, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+                putText(frame, speedInfo, Point(10, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
             }
         }
 
