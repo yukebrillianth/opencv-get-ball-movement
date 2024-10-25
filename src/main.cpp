@@ -52,6 +52,12 @@ int main()
     {
         cap >> frame;
 
+        // Handle if video reached end
+        if (frame.empty())
+        {
+            break;
+        }
+
         // Convert RGB to HSV
         cvtColor(frame, frame_hsv, COLOR_RGB2HSV);
         inRange(frame_hsv, Scalar(h[0], s[0], v[0]), Scalar(h[1], s[1], v[1]), frame_thres);
