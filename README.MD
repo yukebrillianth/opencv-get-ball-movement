@@ -6,6 +6,9 @@
 
 This project is related to the task as an intern software engineer in the Robotics UKM Research Team (IRIS) week 2, Computer Vision chapter.
 
+## Demo
+[Screencast from 25-10-24 01:46:35.webm](https://github.com/user-attachments/assets/198742b4-e880-4957-95ed-a28003412185)
+
 ## How to Use
 ### 1. Installation
 Clone this repo
